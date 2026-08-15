@@ -1,4 +1,7 @@
-module github.com/kislerdm/terraform-provider-neon
+module github.com/neon/terraform-provider-neon
+
+// Module path is `neon/neon` (working value per openspec/changes/provider-handover).
+// Rename in a single commit when Neon confirms the official namespace.
 
 go 1.25.8
 

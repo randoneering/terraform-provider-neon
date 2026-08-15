@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	neon "github.com/kislerdm/neon-sdk-go"
-	"github.com/kislerdm/terraform-provider-neon/provider/telemetry"
+	"github.com/neon/terraform-provider-neon/provider/telemetry"
 )
 
-const Name = "kislerdm/neon"
+const Name = "neon/neon"
 
 func init() {
 	rand.New(rand.NewSource(time.Now().Unix()))
