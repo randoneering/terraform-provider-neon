@@ -5,7 +5,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"slices"
 	"strconv"
 
@@ -79,16 +78,21 @@ func (r *neonAPIKeyResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	createResp, err := r.provider.client.CreateApiKey(neon.ApiKeyCreateRequest{
-		KeyName: plan.Name.ValueString(),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Error creating API key", err.Error())
+	resp.Diagnostics.Append(apiKeyReadiness.Retry(func(ctx context.Context) error {
+		createResp, err := r.provider.client.CreateApiKey(neon.ApiKeyCreateRequest{
+			KeyName: plan.Name.ValueString(),
+		})
+		if err != nil {
+			return err
+		}
+		plan.ID = types.StringValue(strconv.FormatInt(createResp.ID, 10))
+		plan.Key = types.StringValue(createResp.Key)
+		return nil
+	}, ctx)...)
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	plan.ID = types.StringValue(strconv.FormatInt(createResp.ID, 10))
-	plan.Key = types.StringValue(createResp.Key)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -105,9 +109,16 @@ func (r *neonAPIKeyResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	keys, err := r.provider.client.ListApiKeys()
-	if err != nil {
-		resp.Diagnostics.AddError("Error listing API keys", err.Error())
+	var keys []neon.ApiKeysListResponseItem
+	resp.Diagnostics.Append(apiKeyReadiness.Retry(func(ctx context.Context) error {
+		resp, err := r.provider.client.ListApiKeys()
+		if err != nil {
+			return err
+		}
+		keys = resp
+		return nil
+	}, ctx)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -153,11 +164,11 @@ func (r *neonAPIKeyResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	if _, err := r.provider.client.RevokeApiKey(id); err != nil {
-		resp.Diagnostics.AddError(
-			"Error revoking API key",
-			fmt.Sprintf("id=%d: %s", id, err.Error()),
-		)
+	resp.Diagnostics.Append(apiKeyReadiness.Retry(func(ctx context.Context) error {
+		_, err := r.provider.client.RevokeApiKey(id)
+		return err
+	}, ctx)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 }
