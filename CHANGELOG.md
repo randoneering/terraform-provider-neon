@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.16.0-pre.1] - TBD
+
+### Added
+
+- Plugin Framework pilot: `neon_api_key` is now also available on `terraform-plugin-framework` under the new namespace `neon/neon`. Build with `go build ./cmd/neon-framework/` and consume via `source = "neon/neon"` in the `required_providers` block.
+- New `internal/provider/` package implementing the framework provider and the `neon_api_key` resource with retry-on-transient-error semantics (`internal/provider/retry.go`) that mirror `provider/retry.go`.
+- FSM retry wrappers on the framework `neon_api_key` `Create`, `Read`, and `Delete` paths covering 429, 500, and 423 transient errors.
+- Acceptance test scaffolding under `internal/provider/resource_api_key_acc_test.go` covering the four FSM cases (refresh, destroy, update, import). Tests are skipped unless `TF_ACC=1` is set with a real `NEON_API_KEY`.
+
+### Notes
+
+- This is a **pre-release** of the SDK v2 -> Plugin Framework migration pilot described in `openspec/changes/framework-migration-pilot/`. The SDK v2 implementation under `kislerdm/neon` remains the default.
+- State file compatibility is preserved: a state file written by the SDK v2 implementation plans unchanged against the framework implementation (same resource address `neon_api_key`, same attribute names and types).
+
 ## [v0.15.0] - 2026-08-02
 
 ### Fixed
