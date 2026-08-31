@@ -36,12 +36,9 @@ website/vendor
 
 .env
 
-# Openspec
-openspec/
 
 # Coding Agents
 .opencode/
-.pi/
 .pi-subagents/
 .claude/
 .agents
