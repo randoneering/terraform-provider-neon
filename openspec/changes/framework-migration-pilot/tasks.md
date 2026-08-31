@@ -18,8 +18,8 @@
 
 ## 4. State Compatibility
 
-- [x] 4.1 Add a state-compat verification test that applies with the SDK v2 implementation and plans against the framework implementation, and verify the plan output is empty (no diff)
-- [x] 4.2 Run the state-compat test against an existing v0.15.0 state file captured before the merge and verify zero diff
+- [x] 4.1 Add a schema-compat unit test that asserts the framework port of `neon_api_key` exposes the same attribute names, types, and Required/Optional/Computed/Sensitive flags as the SDK v2 implementation
+- [x] 4.2 Run the state-compat integration test that applies with the SDK v2 implementation and plans against the framework implementation, and verify the plan output is empty (no diff)
 
 ## 5. Release
 
