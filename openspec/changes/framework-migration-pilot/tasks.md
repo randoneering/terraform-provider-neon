@@ -23,7 +23,7 @@
 
 ## 5. Release
 
-- [ ] 5.1 Cut a pre-release tag (for example `v0.16.0-pre.1`) and verify the build artifact publishes successfully
+- [x] 5.1 Cut a pre-release tag (for example `v0.16.0-pre.1`) and verify the build artifact publishes successfully
 - [x] 5.2 Update `CHANGELOG.md` to note the framework pilot is available as a pre-release and verify the entry reads clearly
 
 ## 6. User-Facing Migration Documentation
