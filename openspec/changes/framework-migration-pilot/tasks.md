@@ -19,7 +19,7 @@
 ## 4. State Compatibility
 
 - [x] 4.1 Add a state-compat verification test that applies with the SDK v2 implementation and plans against the framework implementation, and verify the plan output is empty (no diff)
-- [ ] 4.2 Run the state-compat test against an existing v0.15.0 state file captured before the merge and verify zero diff
+- [x] 4.2 Run the state-compat test against an existing v0.15.0 state file captured before the merge and verify zero diff
 
 ## 5. Release
 
