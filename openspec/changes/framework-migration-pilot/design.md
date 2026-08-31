@@ -79,3 +79,15 @@ This change does not block on handoff. It stands on its own as a pre-release pil
 
 - Whether the FSM helpers end up duplicated between `provider/retry.go` and `internal/provider/retry.go` or get unified behind a thin abstraction. Both copies exist now; unification is a Change 2 candidate once the template stabilizes.
 - **Resolved (implementation, transitional):** the framework implementation ships as the destination binary under `neon/neon`; the SDK v2 implementation continues under `kislerdm/neon` for now. Both namespaces are expected to collapse to `neon/neon` after Phase 0 + Phase 3. See the "Ship the Framework port as the destination binary" decision above and the Migration Handoff subsection below.
+
+## OpenSpec Artifact Persistence
+
+The `openspec/` directory is gitignored at the repo root (project policy: planning artifacts stay out of git history). For this change, the artifacts under `openspec/changes/framework-migration-pilot/` were force-added to a dedicated `openspec/framework-migration-pilot` branch on the fork so they travel with the working tree across machines while staying out of feature-branch PRs against the original repo.
+
+Pattern for any change in this repo:
+
+- Push openspec/ artifacts to a dedicated `openspec/<change-name>` branch on the fork.
+- Use `git add -f openspec/` to override `.gitignore` on that branch only.
+- Feature branches (`feat/...`) stay openspec-free and are safe for upstream PRs.
+- On any machine: `git fetch origin openspec/<change-name>` and `git checkout openspec/<change-name>` to recover the planning layer.
+- Capture cross-machine resume prompts at `openspec/handoff/<date>-<change>.md` using the same force-add pattern. The `.pi/skills/machine-handoff/SKILL.md` skill generates these on demand.
