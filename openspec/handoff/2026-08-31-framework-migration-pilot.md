@@ -1,4 +1,4 @@
-# Handoff — framework-migration-pilot
+# Handoff: framework-migration-pilot
 
 **Last verified:** 2026-08-31
 **Repo:** randoneering/terraform-provider-neon (fork of neondatabase:main)
@@ -6,8 +6,8 @@
 ## Branch state
 
 Local + remote:
-- `main` — at `b34baa1`, includes the merge of PR #3
-- `feat/framework-migration-pilot-4.1` — merged via PR #3, safe to delete
+- `main` at `b34baa1`, includes the merge of PR #3
+- `feat/framework-migration-pilot-4.1`, merged via PR #3, safe to delete
 - Tag `v0.16.0-pre.1` (`0879260`) pushed to origin
 
 ## OpenSpec change status
@@ -34,9 +34,9 @@ b21eec3 test(provider): add api_key schema-compat test
 Plus tag `v0.16.0-pre.1` (annotated, SSH-signed).
 
 **Verification**
-- `go test ./...` — clean
+- `go test ./...`: clean
 - Schema-compat test (`provider/resource_api_key_schema_test.go`) passes against both SDK v2 and framework schemas; verified to catch drift
-- State-compat integration test (`tests/state-compat/state_compat_test.go`) passes against real Neon: SDK v2 create → framework plan reports "No changes" with exit 0
+- State-compat integration test (`tests/state-compat/state_compat_test.go`) passes against real Neon: SDK v2 create then framework plan reports "No changes" with exit 0
 - CodeRabbit review on PR #3 resolved (one wording tweak on tasks.md)
 
 ## Environment expectations on the next machine
@@ -70,37 +70,37 @@ TF_ACC=1 NEON_API_KEY=$NEON_API_KEY go test -count=1 -v -run TestStateCompat_SDK
 ## Files of interest
 
 Code:
-- `internal/provider/resource_api_key.go` — Framework port with FSM retry wiring
-- `internal/provider/retry.go` — FSM retry helper mirroring `provider/retry.go`
-- `internal/provider/provider.go` — Framework provider with one resource
-- `internal/provider/resource_api_key_acc_test.go` — FSM acceptance tests (refresh/destroy/update/import)
-- `provider/resource_api_key_schema_test.go` — schema-compat unit test
-- `tests/state-compat/state_compat_test.go` — state-compat integration test (drives terraform CLI via dev_overrides)
-- `cmd/neon-framework/main.go` — Binary entry serving `registry.terraform.io/neon/neon`
+- `internal/provider/resource_api_key.go`: Framework port with FSM retry wiring
+- `internal/provider/retry.go`: FSM retry helper mirroring `provider/retry.go`
+- `internal/provider/provider.go`: Framework provider with one resource
+- `internal/provider/resource_api_key_acc_test.go`: FSM acceptance tests (refresh/destroy/update/import)
+- `provider/resource_api_key_schema_test.go`: schema-compat unit test
+- `tests/state-compat/state_compat_test.go`: state-compat integration test (drives terraform CLI via dev_overrides)
+- `cmd/neon-framework/main.go`: Binary entry serving `registry.terraform.io/neon/neon`
 
 Tests use:
 - `t.TempDir()` for isolation
-- Single `binDir` shared across phases; binary is copied in/out for SDK v2 ↔ framework swap (avoids re-init registry query)
+- Single `binDir` shared across phases; binary is copied in/out for SDK v2 vs framework swap (avoids re-init registry query)
 - `t.Cleanup` destroys via SDK v2 to guarantee API key revocation
 
 Docs:
-- `docs/migration/kislerdm-to-neon.md` — user-facing migration guide
-- `CHANGELOG.md` — `v0.16.0-pre.1` entry
-- `.goreleaser.yml` — release pipeline config (no `.github/workflows/release.yml` exists; tag push does not auto-build)
+- `docs/migration/kislerdm-to-neon.md`: user-facing migration guide
+- `CHANGELOG.md`: `v0.16.0-pre.1` entry
+- `.goreleaser.yml`: release pipeline config (no `.github/workflows/release.yml` exists; tag push does not auto-build)
 
 Planning (archived):
 - `openspec/changes/archive/2026-08-31-framework-migration-pilot/{proposal,design,tasks}.md`
 - `openspec/changes/archive/2026-08-31-framework-migration-pilot/specs/framework-hosted-provider/spec.md`
 
 Main specs:
-- `openspec/specs/framework-hosted-provider/spec.md` — 4 requirements synced from delta
+- `openspec/specs/framework-hosted-provider/spec.md`: 4 requirements synced from delta
 
 ## Known caveats
 
 - **No release workflow.** Pushing a tag does not trigger goreleaser; the `.goreleaser.yml` is configured but `.github/workflows/release.yml` is missing. Tag `v0.16.0-pre.1` is on origin but no artifact was published automatically.
-- **Framework port has no `ImportState`** — `terraform import` fails with a clear error, consistent with SDK v2 behavior. Acceptable per the archived spec.
+- **Framework port has no `ImportState`**: `terraform import` fails with a clear error, consistent with SDK v2 behavior. Acceptable per the archived spec.
 - **Two-namespace state (`kislerdm/neon` ↔ `neon/neon`)** is transitional; archived spec covers it (Scenario: "State plans unchanged across namespace handoff"). The state-compat test exercises the address-level handoff.
-- **State-compat test cannot re-init** — registry query for `neon/neon` fails because no published versions exist. Workaround: swap the binary in the same `dev_overrides` dir without re-init.
+- **State-compat test cannot re-init**: registry query for `neon/neon` fails because no published versions exist. Workaround: swap the binary in the same `dev_overrides` dir without re-init.
 - **SSH commit signature verification** needs `gpg.ssh.allowedSignersFile` configured (this repo sets it locally to `~/.ssh/allowed_signers`). GitHub verifies without it.
 
 ## Reusable patterns established this session

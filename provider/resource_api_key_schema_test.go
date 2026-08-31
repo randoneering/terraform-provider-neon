@@ -9,7 +9,7 @@
 // ForceNew (SDK v2) and RequiresReplace plan modifiers (framework) are
 // exercised end-to-end by the acceptance tests under
 // internal/provider/resource_api_key_acc_test.go, so they are intentionally
-// not asserted here — the framework planmodifier package hides the
+// not asserted here. The framework planmodifier package hides the
 // RequiresReplace type behind an unexported struct, and reaching for it via
 // string-matching the modifier description would couple the test to internal
 // wording.
