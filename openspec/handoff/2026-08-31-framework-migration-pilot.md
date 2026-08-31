@@ -5,72 +5,67 @@
 
 ## Branch state
 
-Local:
-- `feat/framework-migration-pilot` — clean, in sync with origin, PR open against upstream
-- `openspec/framework-migration-pilot` — clean, in sync with origin, openspec artifacts only
-
-Remote:
-- `origin/feat/framework-migration-pilot` — PR open
-- `origin/openspec/framework-migration-pilot` — openspec artifacts backup
-- `origin/chore/pr-template` — separate PR for the PR template
+Local + remote:
+- `main` — at `b34baa1`, includes the merge of PR #3
+- `feat/framework-migration-pilot-4.1` — merged via PR #3, safe to delete
+- Tag `v0.16.0-pre.1` (`0879260`) pushed to origin
 
 ## OpenSpec change status
 
-Active change: `framework-migration-pilot` (in-progress, 11/14 tasks complete)
-
-Done: 1.1, 1.2, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 3.4, 5.2, 6.1
-Pending: 4.1, 4.2, 5.1
+Change `framework-migration-pilot` is **archived**:
+- 14/14 tasks complete
+- Delta spec synced to `openspec/specs/framework-hosted-provider/spec.md`
+- Moved to `openspec/changes/archive/2026-08-31-framework-migration-pilot/`
+- `openspec validate --all --strict` passes
+- `openspec list` shows zero active changes
 
 ## Done this session
 
-Five SSH-signed Conventional Commits pushed to `feat/framework-migration-pilot`:
-- `f8951c5 docs(changelog): note framework pilot pre-release`
-- `0e77d56 docs(migration): add user migration guide`
-- `7521eff test(provider): add pilot acceptance tests`
-- `cde8402 chore(provider): add framework binary entry`
-- `9b16821 feat(provider): pilot neon_api_key on framework`
+Six SSH-signed Conventional Commits landed on `main`:
 
-Plus four rebased pilot commits and one openspec commit on the openspec branch.
+```
+b34baa1 chore(openspec): mark 5.1 done after cutting v0.16.0-pre.1
+a3f5680 Merge pull request #3 from randoneering/feat/framework-migration-pilot-4.1
+5b7d561 docs(openspec): narrow 4.1 wording to schema-compat scope
+f5b6339 test(provider): add api_key state-compat integration test
+b21eec3 test(provider): add api_key schema-compat test
+```
 
-FSM acceptance tests verified against real Neon — all 4 cases PASS in 15.87s.
+Plus tag `v0.16.0-pre.1` (annotated, SSH-signed).
+
+**Verification**
+- `go test ./...` — clean
+- Schema-compat test (`provider/resource_api_key_schema_test.go`) passes against both SDK v2 and framework schemas; verified to catch drift
+- State-compat integration test (`tests/state-compat/state_compat_test.go`) passes against real Neon: SDK v2 create → framework plan reports "No changes" with exit 0
+- CodeRabbit review on PR #3 resolved (one wording tweak on tasks.md)
 
 ## Environment expectations on the next machine
 
 - `NEON_API_KEY` set (Personal API Token from console.neon.tech)
-- `TF_ACC=1` to enable acceptance tests
+- `TF_ACC=1` to enable acceptance and state-compat tests
 - SSH agent has `randoneeringkey` loaded for SSH commit signing
+- `TERRAFORM_BIN` if terraform is not on PATH (default lookup uses `terraform`)
 - Go toolchain supports terraform-plugin-framework v1.19+
+- terraform CLI v1.13+ for `-detailed-exitcode` flag
 
 ## Resume from here
 
-1. Fetch and checkout:
+```bash
+git clone git@github.com:randoneering/terraform-provider-neon.git
+cd terraform-provider-neon
+git checkout main
+git fetch --all --prune --tags
 
-   ```bash
-   git clone git@github.com:randoneering/terraform-provider-neon.git
-   cd terraform-provider-neon
-   git fetch --all --prune
-   git checkout feat/framework-migration-pilot
-   git checkout openspec/framework-migration-pilot  # for openspec artifacts
-   ```
+openspec list                       # expect 0 active changes
+openspec validate --all --strict    # expect pass
 
-2. Verify state:
+go build ./...
+go test -count=1 ./...
 
-   ```bash
-   openspec list --json
-   openspec validate framework-migration-pilot --strict
-   go build ./... && go vet ./...
-   ```
-
-3. Re-run FSM tests against real Neon:
-
-   ```bash
-   TF_ACC=1 NEON_API_KEY=$NEON_API_KEY go test -count=1 -run TestAccAPIKeyFrameworkFSM -v ./internal/provider/
-   ```
-
-4. Continue with pending tasks:
-   - **4.1** schema-diff unit test (recommended, no creds needed)
-   - **4.2** capture SDK v2 state file, then plan against framework
-   - **5.1** cut `v0.16.0-pre.1` tag locally, push when creds available
+# With creds:
+TF_ACC=1 NEON_API_KEY=$NEON_API_KEY go test -count=1 ./...
+TF_ACC=1 NEON_API_KEY=$NEON_API_KEY go test -count=1 -v -run TestStateCompat_SDKv2ToFramework ./tests/state-compat/...
+```
 
 ## Files of interest
 
@@ -78,29 +73,41 @@ Code:
 - `internal/provider/resource_api_key.go` — Framework port with FSM retry wiring
 - `internal/provider/retry.go` — FSM retry helper mirroring `provider/retry.go`
 - `internal/provider/provider.go` — Framework provider with one resource
-- `internal/provider/resource_api_key_acc_test.go` — FSM acceptance tests
+- `internal/provider/resource_api_key_acc_test.go` — FSM acceptance tests (refresh/destroy/update/import)
+- `provider/resource_api_key_schema_test.go` — schema-compat unit test
+- `tests/state-compat/state_compat_test.go` — state-compat integration test (drives terraform CLI via dev_overrides)
 - `cmd/neon-framework/main.go` — Binary entry serving `registry.terraform.io/neon/neon`
-- `CHANGELOG.md` — `v0.16.0-pre.1` entry
+
+Tests use:
+- `t.TempDir()` for isolation
+- Single `binDir` shared across phases; binary is copied in/out for SDK v2 ↔ framework swap (avoids re-init registry query)
+- `t.Cleanup` destroys via SDK v2 to guarantee API key revocation
 
 Docs:
 - `docs/migration/kislerdm-to-neon.md` — user-facing migration guide
+- `CHANGELOG.md` — `v0.16.0-pre.1` entry
+- `.goreleaser.yml` — release pipeline config (no `.github/workflows/release.yml` exists; tag push does not auto-build)
 
-Planning (on the `openspec/framework-migration-pilot` branch):
-- `openspec/changes/framework-migration-pilot/proposal.md`
-- `openspec/changes/framework-migration-pilot/design.md`
-- `openspec/changes/framework-migration-pilot/tasks.md`
-- `openspec/changes/framework-migration-pilot/specs/framework-hosted-provider/spec.md`
+Planning (archived):
+- `openspec/changes/archive/2026-08-31-framework-migration-pilot/{proposal,design,tasks}.md`
+- `openspec/changes/archive/2026-08-31-framework-migration-pilot/specs/framework-hosted-provider/spec.md`
+
+Main specs:
+- `openspec/specs/framework-hosted-provider/spec.md` — 4 requirements synced from delta
 
 ## Known caveats
 
-- `openspec/` is gitignored at the repo root. Workaround on dedicated branches: `git add -f openspec/`.
-- SSH signing produces signatures but local verification needs `gpg.ssh.allowedSignersFile` configured. GitHub can verify without this.
-- Framework port has no `ImportState` method — `terraform import` fails with a clear error, consistent with SDK v2 behavior.
-- Two-namespace state (`kislerdm/neon` and `neon/neon`) is transitional; destination is single `neon/neon` after Phase 0 governance + Phase 3 bulk migration.
+- **No release workflow.** Pushing a tag does not trigger goreleaser; the `.goreleaser.yml` is configured but `.github/workflows/release.yml` is missing. Tag `v0.16.0-pre.1` is on origin but no artifact was published automatically.
+- **Framework port has no `ImportState`** — `terraform import` fails with a clear error, consistent with SDK v2 behavior. Acceptable per the archived spec.
+- **Two-namespace state (`kislerdm/neon` ↔ `neon/neon`)** is transitional; archived spec covers it (Scenario: "State plans unchanged across namespace handoff"). The state-compat test exercises the address-level handoff.
+- **State-compat test cannot re-init** — registry query for `neon/neon` fails because no published versions exist. Workaround: swap the binary in the same `dev_overrides` dir without re-init.
+- **SSH commit signature verification** needs `gpg.ssh.allowedSignersFile` configured (this repo sets it locally to `~/.ssh/allowed_signers`). GitHub verifies without it.
 
 ## Reusable patterns established this session
 
-- **Openspec branch on fork.** Force-add `openspec/` artifacts to a dedicated `openspec/*` branch so they live on the fork but stay out of feature-branch PRs (which are openspec-free because `.gitignore` excludes the directory).
-- **SSH signing.** `commit.gpgsign=true`, `gpg.format=ssh`, `user.signingkey=~/.ssh/randoneeringkey.pub` — already configured in this environment.
-- **Conventional Commits scoped.** Use `feat(scope):`, `chore(scope):`, `docs(scope):` with subject lines of a few words.
-- **Two-namespace model.** `cmd/neon-framework/` binary serves `registry.terraform.io/neon/neon`; SDK v2 binary serves `registry.terraform.io/kislerdm/neon`. Documented in `design.md` Migration Handoff section.
+- **Single-namespace provider addresses.** Both SDK v2 and framework binaries serve `registry.terraform.io/neon/neon`. The handoff's "two-namespace" note reflects the historical registry state, not this fork's binaries.
+- **dev_overrides binary swap.** Same `binDir`, copy the target binary in before each phase. Avoids re-init's registry query.
+- **Conventional Commits scoped.** `feat(scope):`, `chore(scope):`, `docs(scope):`, `test(scope):` with subject lines of a few words.
+- **Feature branch + signed PR + merge back.** Working branches stay short-lived; main is the integration point.
+- **openspec/ is tracked in this repo** (unlike the handoff's earlier note). No force-add needed for spec/handoff files.
+- **TDD-style schema tests.** The unit test caught drift when `name.Required` was flipped to `false` (manually verified). Cheap insurance against accidental schema mutations during future migrations.
