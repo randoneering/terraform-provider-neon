@@ -28,6 +28,14 @@ type neonAPIKeyResource struct {
 	provider *neonProvider
 }
 
+// NewNeonAPIKeyResource returns an unconfigured instance of the framework
+// neon_api_key resource. Exported for cross-package schema introspection
+// (see provider/resource_api_key_schema_test.go) and for any future
+// provider registration outside the internal/provider package.
+func NewNeonAPIKeyResource() resource.Resource {
+	return &neonAPIKeyResource{}
+}
+
 func (r *neonAPIKeyResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_api_key"
 }
