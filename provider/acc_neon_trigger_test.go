@@ -13,6 +13,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestTriggerExampleConfigPlan(t *testing.T) {
+	t.Setenv("NEON_API_KEY", "test-api-key")
+
+	config, err := os.ReadFile("../examples/resources/neon_trigger/resource.tf")
+	if err != nil {
+		t.Fatalf("read trigger resource example: %v", err)
+	}
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: newProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config:             string(config),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestTriggerConfigPlan(t *testing.T) {
 	t.Setenv("NEON_API_KEY", "test-api-key")
 
