@@ -31,7 +31,11 @@ func TestInputValidationContract(t *testing.T) {
 		} `json:"inputs"`
 	}
 	require.NoError(t, json.Unmarshal(data, &contract))
-	require.NotEmpty(t, contract.Inputs)
+	var fields []string
+	for _, input := range contract.Inputs {
+		fields = append(fields, input.Surface+"."+input.Path)
+	}
+	require.ElementsMatch(t, []string{"neon_data_api.auth_provider", "neon_service_credential.scopes"}, fields)
 	ctx := context.Background()
 	for _, input := range contract.Inputs {
 		t.Run(input.Surface+"/"+input.Path, func(t *testing.T) {
