@@ -37,6 +37,15 @@
       "minLength": 1,
       "maxLength": 64,
       "description": "Optional name of the compute endpoint\n"
+    },
+    {
+      "schema": "ProjectCreateRequest",
+      "path": "#/components/schemas/ProjectCreateRequest/properties/project/properties/branch/properties/name",
+      "input": "project_branch",
+      "description": "The default branch name. If not specified, the default branch name, `main`, will be used.\n",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
     }
   ]
 }

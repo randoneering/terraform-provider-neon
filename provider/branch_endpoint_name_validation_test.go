@@ -327,10 +327,21 @@ func TestBranchEndpointNameRequestContract(t *testing.T) {
 		} `json:"requests"`
 	}
 	require.NoError(t, json.Unmarshal(data, &fixture))
+	var bindings []string
+	for _, request := range fixture.Requests {
+		bindings = append(bindings, request.Schema+"/"+request.Input)
+	}
+	require.ElementsMatch(t, []string{
+		"BranchCreateRequest/branch",
+		"BranchUpdateRequest/branch",
+		"EndpointCreateRequest/endpoint",
+		"EndpointUpdateRequest/endpoint",
+		"ProjectCreateRequest/project_branch",
+	}, bindings)
 	for _, request := range fixture.Requests {
 		t.Run(request.Schema, func(t *testing.T) {
 			for _, input := range entityNameInputs() {
-				matches := input.resourceType == "neon_"+request.Input || input.parent == request.Input ||
+				matches := input.name == request.Input || input.parent == request.Input ||
 					(request.Input == "endpoint" && input.parent == "primary_compute")
 				if !matches {
 					continue
