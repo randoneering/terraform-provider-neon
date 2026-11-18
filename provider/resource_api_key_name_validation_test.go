@@ -108,7 +108,11 @@ func TestAPIKeyNameValidationContract(t *testing.T) {
 	require.Equal(t, "string", contract.Property.Type)
 	require.Equal(t, 64, contract.Property.MaxLength)
 	require.Nil(t, contract.Property.MinLength)
-	require.Len(t, contract.Bindings, 2)
+	var fields []string
+	for _, binding := range contract.Bindings {
+		fields = append(fields, binding.Resource+"."+binding.Attribute)
+	}
+	require.ElementsMatch(t, []string{"neon_api_key.name", "neon_org_api_key.name"}, fields)
 
 	for _, binding := range contract.Bindings {
 		t.Run(binding.Resource, func(t *testing.T) {
